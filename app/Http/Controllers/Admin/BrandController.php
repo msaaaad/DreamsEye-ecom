@@ -15,8 +15,17 @@ class BrandController extends Controller
      */
     public function index()
     {
-        $brands = Brand::with('products')->get();
-        return $brands;
+        $brands = Brand::all();
+        return response()->json([
+            'brands'        =>$brands,
+        ],200);
+    }
+    public function getActiveBrand()
+    {
+        $brands = Brand::where('publication_status',1)->get();
+        return response()->json([
+            'brands'        =>$brands,
+        ],200);
     }
 
     /**
@@ -37,7 +46,15 @@ class BrandController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'brand_name'        =>'required|min:3|unique:brands',
+            'publication_status'=>'required',
+        ]);
+        Brand::create([
+            'brand_name'        =>$request->brand_name,
+            'slug'              =>slugfy($request->brand_name),
+            'publication_status'=>$request->publication_status,
+        ]);
     }
 
     /**
@@ -46,9 +63,10 @@ class BrandController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($slug)
     {
-        //
+        $brand=Brand::where('slug',$slug)->first();
+        return response()->json(['brand'=>$brand],200);
     }
 
     /**
@@ -69,9 +87,25 @@ class BrandController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        //
+        
+        $request->validate([
+            'brand_name'        =>'required|min:3|unique:brands',
+            'publication_status'=>'required',
+        ]);
+        $brand=Brand::find($request->id);
+        $brand->brand_name        =$request->brand_name;
+        $brand->slug              =slugfy($request->brand_name);
+        $brand->publication_status=$request->publication_status;
+            if($brand->save()){
+                $success = true;
+            }
+            else{
+                $success = false;
+            }
+            return response()->json(['success'=>$success],200);
+
     }
 
     /**
@@ -82,6 +116,29 @@ class BrandController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $brand=Brand::find($id);
+        $brand->delete();
     }
+    public function Publish($id){
+        $brand=Brand::find($id);
+        $brand->publication_status=1;
+            if($brand->save()){
+                $success = true;
+            }
+            else{
+                $success = false;
+            }
+            return response()->json(['success'=>$success],200); 
+   }
+    public function Unpublish($id){
+        $brand=Brand::find($id);
+        $brand->publication_status=0;
+            if($brand->save()){
+                $success = true;
+            }
+            else{
+                $success = false;
+            }
+            return response()->json(['success'=>$success],200); 
+   }
 }

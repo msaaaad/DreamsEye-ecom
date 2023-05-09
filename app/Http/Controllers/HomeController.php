@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Logo;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -23,6 +25,12 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('admin.components.layout');
+        $logo = Logo::where('publication_status',1)->orderBy('id','ASC')->take(1)->first();
+        return view('admin.components.layout',['logo'=>$logo]);
+    }
+
+    public function LogOut(){
+        Auth::logout();
+        return redirect('/login');
     }
 }
